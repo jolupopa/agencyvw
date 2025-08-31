@@ -16,14 +16,14 @@ use Inertia\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class RegisteredUserController extends Controller
+class RegisteredAdminController extends Controller
 {
     /**
      * Show the registration page.
      */
     public function create(): Response
     {
-        return Inertia::render('auth/register');
+        return Inertia::render('auth/admin-register');
     }
 
     /**
@@ -35,7 +35,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:'.Admin::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -43,14 +43,14 @@ class RegisteredUserController extends Controller
 
         DB::beginTransaction();
         try {
-            $user = User::create([
+            $admin = Admin::create([
                 'name' => $request['name'],
                 'email' => $request['email'],
                 'password' => Hash::make($request['password']),
             ]);
 
-            UserProfile::create([
-                'user_id' => $user->id,
+            AdminProfile::create([
+                'admin_id' => $admin->id,
             ]);
 
             //$user->assignRole('user');
@@ -68,15 +68,15 @@ class RegisteredUserController extends Controller
         if($success === true) {
             DB::commit();
             //enviar email
-            event(new Registered($user));
+            event(new Registered($admin));
 
-            Auth::login($user);
+            Auth::login($admin);
 
-            return redirect()->intended(route('dashboard', absolute: false));
+            return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 
-        Log::error('ERROR NO SE REGISTRO USUARIO');
+        Log::error('ERROR NO SE REGISTRO ADMINISTRADOR');
         Log::error($exception);
-        return redirect(route('register'));
+        return redirect(route('admin.register'));
     }
 }

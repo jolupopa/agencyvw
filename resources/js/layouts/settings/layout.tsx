@@ -2,11 +2,11 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { type NavItem, SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
-const sidebarNavItems: NavItem[] = [
+const webSidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
         href: '/settings/profile',
@@ -22,13 +22,40 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/appearance',
         icon: null,
     },
+
+    ///
 ];
 
+
+const adminSidebarNavItems: NavItem[] = [
+    {
+        title: 'Admin Profile',
+        href: '/admin/settings/profile',
+        icon: null,
+    },
+    {
+        title: 'Admin Password',
+        href: '/admin/settings/password',
+        icon: null,
+    },
+    {
+        title: 'Admin Appearance',
+        href: '/admin/settings/appearance',
+        icon: null,
+    },
+];
 export default function SettingsLayout({ children }: PropsWithChildren) {
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {
         return null;
     }
+
+     // Get the auth data from the page props
+    const { auth } = usePage<SharedData>().props;
+
+    // Determine which set of navigation items to use based on the user's guard
+    const sidebarNavItems = auth.guard === 'admin' ? adminSidebarNavItems : webSidebarNavItems;
+
 
     const currentPath = window.location.pathname;
 

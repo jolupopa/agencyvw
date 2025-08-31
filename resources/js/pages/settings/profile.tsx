@@ -11,15 +11,20 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Profile settings',
-        href: '/settings/profile',
-    },
-];
 
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
     const { auth } = usePage<SharedData>().props;
+
+     // Determine the form action route based on the user's guard
+    const formActionRoute = auth.guard === 'admin' ? route('admin.profile.update') : route('profile.update');
+
+    // Determine the breadcrumbs based on the user's guard
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: auth.guard === 'admin' ? 'Admin Profile settings' : 'Profile settings',
+            href: auth.guard === 'admin' ? '/admin/settings/profile' : '/settings/profile',
+        },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -31,7 +36,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
                     <Form
                         method="patch"
-                        action={route('profile.update')}
+                        action={formActionRoute}
                         options={{
                             preserveScroll: true,
                         }}
@@ -112,7 +117,6 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                     </Form>
                 </div>
 
-                <DeleteUser />
             </SettingsLayout>
         </AppLayout>
     );

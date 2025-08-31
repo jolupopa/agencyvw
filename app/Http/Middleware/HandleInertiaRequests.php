@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
+use Illuminate\Support\Facades\Auth;
+
 class HandleInertiaRequests extends Middleware
 {
     /**
@@ -39,12 +41,15 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $guard = Auth::guard('web')->check() ? 'web' : (Auth::guard('admin')->check() ? 'admin' : null);
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                'guard' => $guard,
             ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
