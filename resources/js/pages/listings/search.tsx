@@ -154,6 +154,13 @@ const Search: React.FC<Props> = () => {
                     </div>
                 </div>
                 <button type="submit" className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Buscar</button>
+                <button
+                    type="button"
+                    onClick={() => setFormFilters({ offer_type_id: '', property_type_id: '', keyword: '' })}
+                    className="mt-4 mx-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                    Limpiar
+                </button>
             </form>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

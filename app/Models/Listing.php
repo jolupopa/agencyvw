@@ -10,6 +10,32 @@ class Listing extends Model
     /** @use HasFactory<\Database\Factories\ListingFactory> */
     use HasFactory;
 
+        protected $fillable = [
+        'user_id',
+        'parent_id',
+        'title',
+        'description',
+        'price',
+        'currency',
+        'offer_type_id',
+        'property_type_id',
+        'address',
+        'city',
+        'country',
+        'latitude',
+        'longitude',
+        'land_area',
+        'built-area',
+        'bedrooms',
+        'bathrooms',
+        'floors',
+        'parking_spaces',
+        'attributes',
+        'status',
+
+
+    ];
+
     protected $casts = [
         'attributes' => 'array',
     ];

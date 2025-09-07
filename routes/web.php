@@ -8,15 +8,19 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
-Route::get('/listings/search', [ListingController::class, 'search'])->name('listings.search');
-Route::get('/listings', [ListingController::class, 'index'])->name('listings.index');
-Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('listings.show');
 
+Route::get('/listings', [ListingController::class, 'index'])->name('listings.index');
+Route::get('/listings/search', [ListingController::class, 'search'])->name('listings.search');
 Route::get('/listings/create', [ListingController::class, 'create'])->name('listings.create');
 Route::post('/listings', [ListingController::class, 'store'])->name('listings.store');
+Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('listings.show')->whereNumber('listing');
 Route::get('/listings/{listing}/edit', [ListingController::class, 'edit'])->name('listings.edit');
 Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
 Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
+
+
+Route::post('/listings/{listing}/media', [ListingController::class, 'storeMedia'])->name('listings.media.store');
+Route::delete('/listings/{listing}/media/{media}', [ListingController::class, 'destroyMedia'])->name('listings.media.destroy');
 
 
 Route::get('/offer-types', [OfferTypeController::class, 'index']);

@@ -47,7 +47,7 @@ const Index: React.FC<Props> = () => {
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Listados de Propiedades</h1>
             <div className="mb-4">
-                <Link href="/listings/create" className="bg-blue-500 text-white px-4 py-2 rounded">Crear Nuevo Listado</Link>
+                <Link href={route('listings.create')} className="bg-blue-500 text-white px-4 py-2 rounded">Crear Nuevo Listado</Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
