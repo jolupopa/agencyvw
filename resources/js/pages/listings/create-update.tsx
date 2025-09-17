@@ -23,6 +23,7 @@ interface Listing {
     parking_spaces: number | null;
     attributes: string | null;
     parent_id: number | null;
+    user_id?: number;
     offer_type?: { id: number; name: string };
     property_type?: { id: number; name: string };
     media?: { id: number; path: string; type: string; order: number }[];
@@ -40,6 +41,7 @@ interface Subproject {
     floors: number | null;
     parking_spaces: number | null;
     attributes: string | null;
+    user_id?: number;
 }
 
 interface Option {
@@ -53,10 +55,13 @@ interface Props extends PageProps {
     offerTypes: Option[];
     propertyTypes: Option[];
     projects: { id: number; title: string }[];
+    auth: { user: { id: number; name: string } | null };
 }
 
 const CreateUpdate: React.FC<Props> = () => {
-    const { listing, offerTypes, propertyTypes, projects } = usePage<Props>().props;
+    const { listing, offerTypes, propertyTypes, projects, auth } = usePage<Props>().props;
+
+
 
     const isEditing = !!listing;
     const [formData, setFormData] = useState<Listing>({
@@ -78,6 +83,7 @@ const CreateUpdate: React.FC<Props> = () => {
         parking_spaces: listing?.parking_spaces || null,
         attributes: listing?.attributes || '',
         parent_id: listing?.parent_id || null,
+        user_id: listing?.user_id || auth.user?.id,
     });
 
     const [subprojects, setSubprojects] = useState<Subproject[]>([]);
@@ -138,6 +144,7 @@ const CreateUpdate: React.FC<Props> = () => {
                 floors: null,
                 parking_spaces: null,
                 attributes: '',
+                user_id: auth.user?.id,
             },
         ]);
     };
@@ -181,7 +188,12 @@ const CreateUpdate: React.FC<Props> = () => {
             parking_spaces: formData.parking_spaces,
             attributes: formData.attributes,
             parent_id: formData.parent_id,
-            subprojects: subprojects.length > 0 ? subprojects : undefined,
+            user_id: auth.user?.id, // Include user_id in payload
+            subprojects: subprojects.length > 0 ? subprojects.map(sub => ({
+                ...sub,
+                user_id: auth.user?.id, // Ensure subprojects have user_id
+            })) : undefined,
+
         };
 
         const method = isEditing ? 'put' : 'post';
@@ -234,6 +246,7 @@ const CreateUpdate: React.FC<Props> = () => {
         agricultural_land_project: 'Proyecto de Terreno Agrícola',
     };
 
+    console.log('desde create', auth);
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">{isEditing ? 'Editar Listado' : 'Crear Listado'}</h1>
@@ -680,7 +693,7 @@ const CreateUpdate: React.FC<Props> = () => {
                 <button
                     type="submit"
                     className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-                    disabled={isLoading}
+                    disabled={isLoading || !auth.user}
                 >
                     {isLoading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear')}
                 </button>

@@ -8,6 +8,10 @@ use App\Models\OfferType;
 use App\Models\PropertyType;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Response;
 
 class ListingController extends Controller
 {
@@ -17,34 +21,51 @@ class ListingController extends Controller
      */
     public function index()
     {
-        $listings = Listing::query()
-        ->with(['offerType', 'propertyType'])
-        ->where('status', 'active')
-        ->paginate(10)
-        ->withQueryString();
+        $query = Listing::query()
+            ->with([
+                'offerType' => fn($q) => $q->select(['id', 'name']),
+                'propertyType' => fn($q) => $q->select(['id', 'name', 'category']),
+                'media' => fn($q) => $q->where('type', 'image')->orderBy('order')->first()
+            ])
+            ->where('status', 'active')
+            ->whereNull('parent_id') // Only include listings with no parent_id (not subprojects)
+            ->latest();
 
-        return Inertia::render('listings/index', [
+        // Filter by user_id if authenticated
+        if (Auth::check('web')) {
+            $query->where('user_id', Auth::guard('web')->id());
+        }
+
+        $listings = $query->paginate(10)->withQueryString();
+
+        //dd($listings);
+
+        return Inertia::render('user/listings/index', [
             'listings' => $listings,
+            'offerTypes' => OfferType::all(['id', 'name']),
+            'propertyTypes' => PropertyType::all(['id', 'name', 'category']),
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request): Response
     {
-        return Inertia::render('listings/create-update', [
+        return Inertia::render('user/listings/create-update', [
             'offerTypes' => OfferType::all(['id', 'name']),
             'propertyTypes' => PropertyType::all(['id', 'name', 'category']),
             'projects' => Listing::whereHas('offerType', fn($q) => $q->where('name', 'project'))->get(['id', 'title']),
+            'auth' => Auth::guard('web')->check() ? ['user' => Auth::user('web')->only(['id', 'name'])] : ['user' => null],
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
+        //dd($request);
        $validated = $request->validate([
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
@@ -64,6 +85,7 @@ class ListingController extends Controller
         'parking_spaces' => 'nullable|integer|min:0',
         'attributes' => 'nullable|json',
         'parent_id' => 'nullable|exists:listings,id',
+        'user_id' => 'required|integer|exists:users,id',
         'subprojects' => 'nullable|array',
         'subprojects.*.title' => 'required|string|max:255',
         'subprojects.*.description' => 'nullable|string',
@@ -76,26 +98,59 @@ class ListingController extends Controller
         'subprojects.*.floors' => 'nullable|integer|min:0',
         'subprojects.*.parking_spaces' => 'nullable|integer|min:0',
         'subprojects.*.attributes' => 'nullable|json',
+        'subprojects.*.user_id' => 'required|integer|exists:users,id',
     ]);
 
-       $listing = Listing::create($validated);
-        if ($request->has('subprojects')) {
-            foreach ($validated['subprojects'] as $subprojectData) {
-                $subprojectData['user_id'] = $request->user()->id;
-                $subprojectData['offer_type_id'] = OfferType::where('name', 'project')->first()->id;
-                $subprojectData['parent_id'] = $listing->id;
-                $subprojectData['currency'] = $listing->currency;
-                $subprojectData['city'] = $listing->city;
-                $subprojectData['address'] = $listing->address;
-                $subprojectData['latitude'] = $listing->latitude;
-                $subprojectData['longitude'] = $listing->longitude;
-                Listing::create($subprojectData);
+    $user1 = $request['user_id'];
+    $user2 =  Auth::guard('web')->user()->id;
+        // // Ensure user_id matches the authenticated user
+        // if ($request['user_id'] !==  Auth::guard('web')->user()->id ) {
+        //     dd( $user1 . 'error de usuario no autorizado' . $user2);
+        //     //return response()->json(['error' => 'Unauthorized user_id'], 403);
+        // }
+
+        $listingData = $request->except('subprojects');
+        $listingData['user_id'] =  Auth::guard('web')->user()->id ; // Force user_id to authenticated user
+
+      return DB::transaction(function () use ($request, $validated) {
+            $listingData = $request->except(['subprojects', 'images']);
+            $listingData['user_id'] = auth('web')->user()->id;
+            $listingData['status'] = 'active';
+            $listing = Listing::create($listingData);
+
+            if ($request->has('subprojects')) {
+                $subprojects = json_decode($request->input('subprojects'), true);
+                foreach ($subprojects as $subprojectData) {
+                    if ($subprojectData['user_id'] !== Auth::guard('web')->user()->id ) {
+                        throw new \Exception('Unauthorized user_id in subproject');
+                    }
+                    $subprojectData['user_id'] = Auth::guard('web')->user()->id ;
+                    $subprojectData['offer_type_id'] = OfferType::where('name', 'project')->first()->id;
+                    $subprojectData['parent_id'] = $listing->id;
+                    $subprojectData['currency'] = $listing->currency;
+                    $subprojectData['city'] = $listing->city;
+                    $subprojectData['address'] = $listing->address;
+                    $subprojectData['latitude'] = $listing->latitude;
+                    $subprojectData['longitude'] = $listing->longitude;
+                    $subprojectData['status'] = 'active';
+                    Listing::create($subprojectData);
+                }
             }
-        }
 
-        return Inertia::render('listings/create-update', ['listing' => $listing]);
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images', []) as $index => $image) {
+                    $path = $image->store('listings', 'public');
+                    $listing->media()->create([
+                        'path' => '/storage/' . $path,
+                        'type' => 'image',
+                        'order' => $index,
+                    ]);
+                }
+            }
 
-        return redirect()->route('listings.index')->with('success', 'Listing created.');
+            return redirect()->route('listings.index');
+        });
+
     }
 
     /**
@@ -138,12 +193,17 @@ class ListingController extends Controller
      */
     public function edit(Listing $listing)
     {
-        $listing->load(['offerType', 'propertyType']);
-        return Inertia::render('listings/create-update', [
+        $listing->load([
+            'offerType' => fn($q) => $q->select(['id', 'name']),
+            'propertyType' => fn($q) => $q->select(['id', 'name', 'category']),
+            'media' => fn($q) => $q->where('type', 'image')
+        ]);
+        return Inertia::render('user/listings/create-update', [
             'listing' => $listing,
             'offerTypes' => OfferType::all(['id', 'name']),
             'propertyTypes' => PropertyType::all(['id', 'name', 'category']),
             'projects' => Listing::whereHas('offerType', fn($q) => $q->where('name', 'project'))->get(['id', 'title']),
+            'auth' => Auth::check('web') ? ['user' => Auth::guard('web')->user()->only(['id', 'name'])] : ['user' => null],
         ]);
     }
 
@@ -153,44 +213,51 @@ class ListingController extends Controller
     public function update(Request $request, Listing $listing)
     {
         $validated = $request->validate([
-        // Same validation as store
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'nullable|numeric|min:0',
+            'currency' => 'required|string|in:USD,PEN',
+            'offer_type_id' => 'required|exists:offer_types,id',
+            'property_type_id' => 'required|exists:property_types,id',
+            'city' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'land_area' => 'nullable|numeric|min:0',
+            'built_area' => 'nullable|numeric|min:0',
+            'bedrooms' => 'nullable|integer|min:0',
+            'bathrooms' => 'nullable|integer|min:0',
+            'floors' => 'nullable|integer|min:0',
+            'parking_spaces' => 'nullable|integer|min:0',
+            'attributes' => 'nullable|json',
+            'parent_id' => 'nullable|exists:listings,id',
+            'user_id' => 'required|integer|exists:users,id', // Validate user_id
         ]);
-
-        // Same validation logic as store
-        $offerType = OfferType::find($validated['offer_type_id']);
-        $propertyType = PropertyType::find($validated['property_type_id']);
-        $roomTypes = ['shared_bathroom_room', 'private_room', 'student_room'];
-
-        if ($offerType->name === 'project' && $propertyType->category !== 'project') {
-            throw new \Exception('Property type must be for projects.');
-        } elseif (in_array($offerType->name, ['sale', 'rent']) && $propertyType->category !== 'property') {
-            throw new \Exception('Property type must be for sale/rent.');
-        } elseif ($offerType->name === 'temporary_accommodation' && !in_array($propertyType->name, $roomTypes)) {
-            throw new \Exception('Property type must be a room type for temporary accommodation.');
+        // Ensure user_id matches the authenticated user
+        if ($request->user_id !== Auth::guard('web')->id()) {
+            return response()->json(['error' => 'Unauthorized user_id'], 403);
         }
 
-        if ($offerType->name !== 'project') {
-            $validated['parent_id'] = null;
-        }
+         return DB::transaction(function () use ($request, $listing, $validated) {
+            $listingData = $request->except('images');
+            $listingData['user_id'] = auth()->id();
+            $listing->update($listingData);
 
-        if (in_array($propertyType->name, ['urban_land', 'agricultural_land'])) {
-            if (empty($validated['land_area'])) {
-                throw new \Exception('Land area is required for terrain types.');
+            if ($request->hasFile('images')) {
+                // Optionally delete existing media if replacing
+                $listing->media()->delete();
+                foreach ($request->file('images', []) as $index => $image) {
+                    $path = $image->store('listings', 'public');
+                    $listing->media()->create([
+                        'path' => '/storage/' . $path,
+                        'type' => 'image',
+                        'order' => $index,
+                    ]);
+                }
             }
-            $validated['built_area'] = null;
-            $validated['bedrooms'] = null;
-            $validated['bathrooms'] = null;
-            $validated['floors'] = null;
-            $validated['parking_spaces'] = null;
-        } elseif ($offerType->name !== 'temporary_accommodation' && $propertyType->category === 'property') {
-            if (empty($validated['built_area'])) {
-                throw new \Exception('Built area is required for non-terrain properties.');
-            }
-        }
 
-        $listing->update($validated);
-
-        return redirect()->route('listings.index')->with('success', 'Listing updated.');
+            return redirect()->route('listings.index');
+        });
     }
 
     /**
@@ -221,6 +288,16 @@ class ListingController extends Controller
 
         if ($keyword = $request->query('keyword')) {
             $query->where('city', 'LIKE', "%{$keyword}%");
+        }
+
+        if ($attribute = $request->query('attribute')) {
+            $query->whereJsonContains('attributes->amenities', $attribute); // Adjust 'amenities' to your JSON key
+        }
+
+        if ($attributes = $request->query('attributes', [])) {
+            foreach ($attributes as $attr) {
+                $query->whereJsonContains('attributes->amenities', $attr);
+            }
         }
 
         $listings = $query->paginate(10)->withQueryString();

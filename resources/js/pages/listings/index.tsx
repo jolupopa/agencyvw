@@ -11,6 +11,7 @@ interface Listing {
     offer_type: { id: number; name: string };
     property_type: { id: number; name: string };
     city: string | null;
+    media?: { id: number; path: string; type: string; order: number } | null;
 }
 
 interface Props extends PageProps {
@@ -53,6 +54,15 @@ const Index: React.FC<Props> = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {listings.data.map((listing) => (
                     <div key={listing.id} className="bg-white p-4 rounded shadow">
+                        {listing.media && (
+                            <img
+                                src={listing.media.path}
+                                alt={listing.title}
+                                className="w-full h-48 object-cover rounded mb-4"
+                            />
+                        )}
+
+
                         <h2 className="text-xl font-bold">{listing.title}</h2>
                         <p className="text-gray-600">{listing.description?.substring(0, 100)}...</p>
                         <p className="font-semibold">Precio: {listing.price ? `${listing.currency} ${listing.price}` : 'Consultar'}</p>

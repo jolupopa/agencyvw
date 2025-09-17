@@ -32,6 +32,7 @@ interface Props extends PageProps {
         offer_type_id?: number;
         property_type_id?: number;
         keyword?: string;
+        attribute?: string;
     };
     offerTypes: Option[];
     propertyTypes: Option[];
@@ -44,6 +45,7 @@ const Search: React.FC<Props> = () => {
         offer_type_id: filters.offer_type_id || '',
         property_type_id: filters.property_type_id || '',
         keyword: filters.keyword || '',
+        attribute: filters.attribute || '',
     });
 
     const [filteredPropertyTypes, setFilteredPropertyTypes] = useState<Option[]>([]);
@@ -152,11 +154,23 @@ const Search: React.FC<Props> = () => {
                             placeholder="Ej: Lima"
                         />
                     </div>
+                    <div>
+                        <label htmlFor="attribute" className="block text-sm font-medium text-gray-700">Atributo (ej: amoblado)</label>
+                        <input
+                            type="text"
+                            id="attribute"
+                            name="attribute"
+                            value={formFilters.attribute}
+                            onChange={handleChange}
+                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Ej: amoblado"
+                        />
+                    </div>
                 </div>
                 <button type="submit" className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Buscar</button>
                 <button
                     type="button"
-                    onClick={() => setFormFilters({ offer_type_id: '', property_type_id: '', keyword: '' })}
+                    onClick={() => setFormFilters({ offer_type_id: '', property_type_id: '', keyword: '', attribute: '' })}
                     className="mt-4 mx-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                 >
                     Limpiar

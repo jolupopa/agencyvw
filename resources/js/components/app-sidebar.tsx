@@ -13,6 +13,12 @@ const mainNavItems: NavItem[] = [
         href: '/dashboard',
         icon: LayoutGrid,
     },
+
+    {
+        title: 'Listado',
+        href: '/user/listings',
+        icon: LayoutGrid,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

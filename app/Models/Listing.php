@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Listing extends Model
 {
@@ -41,32 +44,32 @@ class Listing extends Model
     ];
 
     // Relationships (same).
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function parent()
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(Listing::class, 'parent_id');
     }
 
-    public function subprojects()
+    public function subprojects(): HasMany
     {
         return $this->hasMany(Listing::class, 'parent_id');
     }
 
-    public function media()
+    public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'mediable');
     }
 
-    public function offerType()
+    public function offerType(): BelongsTo
     {
         return $this->belongsTo(OfferType::class);
     }
 
-    public function propertyType()
+    public function propertyType(): BelongsTo
     {
         return $this->belongsTo(PropertyType::class);
     }
