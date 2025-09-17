@@ -64,6 +64,11 @@ class Listing extends Model
         return $this->morphMany(Media::class, 'mediable');
     }
 
+    public function firstImage(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    {
+        return $this->morphOne(Media::class, 'mediable')->where('type', 'image')->orderBy('order');
+    }
+
     public function offerType(): BelongsTo
     {
         return $this->belongsTo(OfferType::class);

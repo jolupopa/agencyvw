@@ -25,7 +25,7 @@ class ListingController extends Controller
             ->with([
                 'offerType' => fn($q) => $q->select(['id', 'name']),
                 'propertyType' => fn($q) => $q->select(['id', 'name', 'category']),
-                'media' => fn($q) => $q->where('type', 'image')->orderBy('order')->first()
+                'firstImage'
             ])
             ->where('status', 'active')
             ->whereNull('parent_id') // Only include listings with no parent_id (not subprojects)

@@ -21,7 +21,7 @@ interface Listing {
     city: string | null;
     offer_type: { id: number; name: string };
     property_type: { id: number; name: string; category: string };
-    media?: { id: number; path: string; type: string; order: number } | null;
+    first_image?: { id: number; path: string; type: string; order: number } | null;
 }
 
 interface Option {
@@ -86,9 +86,9 @@ export default function index({ listings, auth }: Props) {
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {listings.data.map((listing) => (
                     <div key={listing.id} className="bg-white p-4 rounded shadow">
-                        {listing.media && (
+                        {listing.first_image && (
                             <img
-                                src={listing.media.path}
+                                src={listing.first_image.path}
                                 alt={listing.title}
                                 className="w-full h-48 object-cover rounded mb-4"
                             />
