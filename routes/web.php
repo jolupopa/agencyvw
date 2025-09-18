@@ -23,13 +23,13 @@ Route::middleware(['auth:web', 'verified'])->group(function () {
     Route::get('/listings/search', [ListingController::class, 'search'])->name('listings.search');
     Route::get('/user/listings/create', [ListingController::class, 'create'])->name('listings.create');
     Route::post('/user/listings', [ListingController::class, 'store'])->name('listings.store');
-    Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('listings.show')->whereNumber('listing');
-    Route::get('/user/listings/{listing}/edit', [ListingController::class, 'edit'])->name('listings.edit');
-    Route::put('/user/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
-    Route::delete('/user/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
+    Route::get('/user/listings/{id}', [ListingController::class, 'show'])->name('listings.show');
+    Route::get('/listings/{id}/edit', [ListingController::class, 'edit'])->name('listings.edit');
+    Route::put('/user/listings/{id}', [ListingController::class, 'update'])->name('listings.update');
+    Route::delete('/user/listings/{id}', [ListingController::class, 'destroy'])->name('listings.destroy');
 
 
-    Route::post('/listings/{listing}/media', [ListingController::class, 'storeMedia'])->name('listings.media.store');
+    Route::post('/listings/{id}/media', [ListingController::class, 'storeMedia'])->name('listings.media.store');
     Route::delete('/listings/{listing}/media/{media}', [ListingController::class, 'destroyMedia'])->name('listings.media.destroy');
 
 });

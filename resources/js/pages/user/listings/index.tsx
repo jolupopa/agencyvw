@@ -8,7 +8,7 @@ import { PageProps } from '@inertiajs/core';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Listado de Propiedades',
-        href: '/user/listings',
+        href: route('listings.index'),
     },
 ];
 
@@ -72,7 +72,7 @@ export default function index({ listings, auth }: Props) {
                     <h1 className="text-2xl font-bold mb-4">
                     {auth.user ? 'Mis Listados' : 'Todos los Listados'}
                     </h1>
-                    <Link href="/user/listings/create" className="bg-blue-500 text-white px-3 py-2 hover:underline">
+                    <Link href={route('listings.create')} className="bg-blue-500 text-white px-3 py-2 hover:underline">
                             Crear un nuevo listado
                     </Link>
                 </div>
@@ -103,14 +103,14 @@ export default function index({ listings, auth }: Props) {
                         <p className="text-gray-600">{displayLabels[listing.property_type.name] || listing.property_type.name}</p>
                         <div className="mt-2 flex space-x-2">
                             <Link
-                                href={`/listings/${listing.id}`}
+                                href={route('listings.show', listing.id)}
                                 className="text-blue-500 hover:underline"
                             >
                                 Ver Detalles
                             </Link>
                             {auth.user && (
                                 <Link
-                                    href={`/listings/${listing.id}/edit`}
+                                    href={route('listings.edit', listing.id)}
                                     className="text-green-500 hover:underline"
                                 >
                                     Editar
@@ -137,7 +137,7 @@ export default function index({ listings, auth }: Props) {
             {auth.user && listings.data.length === 0 && (
                 <div className="mt-4 text-center">
                     <Link
-                        href="/listings/create"
+                        href={route('listings.create')}
                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                     >
                         Crear Nuevo Listado

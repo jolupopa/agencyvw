@@ -188,8 +188,8 @@ const Show: React.FC<Props> = () => {
 
                 {/* Actions */}
                 <div className="flex space-x-4">
-                    <Link href={`/listings/${listing.id}/edit`} className="bg-green-500 text-white px-4 py-2 rounded">Editar</Link>
-                    <Link href="/listings" className="bg-gray-500 text-white px-4 py-2 rounded">Volver</Link>
+
+                    <Link href={route('listings.index')} className="bg-gray-500 text-white px-4 py-2 rounded">Volver</Link>
                 </div>
             </div>
         </div>

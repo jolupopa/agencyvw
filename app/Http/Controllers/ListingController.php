@@ -156,24 +156,10 @@ class ListingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Listing $listing)
+    public function show($id)
     {
-        // if (!is_numeric($listing)) {
-        //     abort(404, 'ID inválido');
-        // }
 
-        // $listing = Listing::with([
-        //     'offerType' => fn($q) => $q->select(['id', 'name']),
-        //     'propertyType' => fn($q) => $q->select(['id', 'name', 'category']),
-        //     'media' => fn($q) => $q->where('type', 'image')->orderBy('order')->first()
-        // ])
-        // ->where('status', 'active')
-        // ->findOrFail($listing);
-
-        // return Inertia::render('listings/show', [
-        //     'listing' => $listing,
-        // ]);
-
+        $listing = Listing::findOrFail($id);
 
         $listing->load([
         'offerType',
@@ -183,7 +169,7 @@ class ListingController extends Controller
         'parent' => fn($query) => $query->with(['offerType', 'propertyType']),
         ]);
 
-        return Inertia::render('listings/show', [
+        return Inertia::render('user/listings/show', [
             'listing' => $listing,
         ]);
     }
@@ -191,8 +177,10 @@ class ListingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Listing $listing)
+    public function edit($id)
     {
+        $listing = Listing::findOrFail($id);
+
         $listing->load([
             'offerType' => fn($q) => $q->select(['id', 'name']),
             'propertyType' => fn($q) => $q->select(['id', 'name', 'category']),
@@ -210,8 +198,10 @@ class ListingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Listing $listing)
+    public function update(Request $request, $id)
     {
+        $listing = Listing::findOrFail($id);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -233,10 +223,6 @@ class ListingController extends Controller
             'parent_id' => 'nullable|exists:listings,id',
             'user_id' => 'required|integer|exists:users,id', // Validate user_id
         ]);
-        // Ensure user_id matches the authenticated user
-        if ($request->user_id !== Auth::guard('web')->id()) {
-            return response()->json(['error' => 'Unauthorized user_id'], 403);
-        }
 
          return DB::transaction(function () use ($request, $listing, $validated) {
             $listingData = $request->except('images');
@@ -263,8 +249,9 @@ class ListingController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Listing $listing)
+    public function destroy($id)
     {
+        $listing = Listing::findOrFail($id);
         //
     }
 
