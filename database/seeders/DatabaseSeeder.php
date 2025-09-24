@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
          $this->call([
             OfferTypeSeeder::class,
             PropertyTypeSeeder::class,
+            AmenitySeeder::class,
             ListingSeeder::class,
         ]);
 

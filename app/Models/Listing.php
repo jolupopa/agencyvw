@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -77,6 +78,11 @@ class Listing extends Model
     public function propertyType(): BelongsTo
     {
         return $this->belongsTo(PropertyType::class);
+    }
+
+      public function amenities(): BelongsToMany
+    {
+        return $this->belongsToMany(Amenity::class);
     }
 
     // Updated scopes.

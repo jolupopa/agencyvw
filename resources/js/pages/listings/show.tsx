@@ -8,6 +8,12 @@ interface Media {
     type: 'image' | 'video' | 'plan' | '360_tour';
     order: number;
 }
+interface Amenity {
+    id: number;
+    name: string;
+    slug: string;
+    icon?: string;
+}
 
 interface Listing {
     id: number;
@@ -28,6 +34,7 @@ interface Listing {
     floors: number | null;
     parking_spaces: number | null;
     attributes: { [key: string]: any } | null;
+    amenities: Amenity[];
     parent_id: number | null;
     parent?: { id: number; title: string; offer_type: { name: string }; property_type: { name: string } };
     subprojects: Listing[];
@@ -147,6 +154,22 @@ const Show: React.FC<Props> = () => {
                                 </li>
                             ))}
                         </ul>
+                    </div>
+                )}
+
+                {/* Amenities */}
+                {listing.amenities && listing.amenities.length > 0 && (
+                    <div className="mb-6">
+                        <h2 className="text-xl font-semibold mb-2">Amenidades</h2>
+                        <div className="flex flex-wrap gap-2">
+                            {listing.amenities.map((amenity) => (
+                                // Aquí puedes usar un componente de Shadcn, como <Badge> o <Tag>
+                                <div key={amenity.id} className="bg-primary/10 text-primary-foreground text-sm font-medium py-1 px-3 rounded-full">
+                                    {/* {amenity.icon && <img src={amenity.icon} alt="" className="inline-block h-4 w-4 mr-2" />} */}
+                                    {amenity.name}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 

@@ -6,6 +6,7 @@ use App\Models\Listing;
 use App\Models\Media;
 use App\Models\OfferType;
 use App\Models\PropertyType;
+use App\Models\Amenity;
 use Illuminate\Database\Seeder;
 use Faker\Factory as Faker;
 
@@ -18,6 +19,8 @@ class ListingSeeder extends Seeder
         // Fetch existing offer and property types
         $offerTypes = OfferType::pluck('id', 'name')->toArray();
         $propertyTypes = PropertyType::pluck('id', 'name')->toArray();
+
+         $amenityIds = Amenity::pluck('id')->toArray();
 
         // Add new project types for terrains if not exist (to allow terrains in subprojects)
         $terrainProjectTypes = ['urban_land_project' => 'project', 'agricultural_land_project' => 'project'];
@@ -58,7 +61,6 @@ class ListingSeeder extends Seeder
                 'address' => $faker->streetAddress,
                 'latitude' => $faker->latitude,
                 'longitude' => $faker->longitude,
-                'attributes' => json_encode(['amenities' => $faker->randomElements(['pool', 'gym', 'garden', 'wifi'], rand(1, 3))]),
             ];
 
             if ($isTerrain) {
@@ -72,6 +74,10 @@ class ListingSeeder extends Seeder
             }
 
             $listing = Listing::create($data);
+
+            $listing->amenities()->attach(
+                $faker->randomElements($amenityIds, rand(1, min(3, count($amenityIds))))
+            );
 
             // Add 1-5 random photos
             $numPhotos = rand(1, 5);
@@ -105,13 +111,14 @@ class ListingSeeder extends Seeder
                 'built_area' => $faker->randomFloat(2, 10, 30),
                 'bedrooms' => 1,
                 'bathrooms' => rand(0, 1),
-                'attributes' => json_encode([
-                    'minimum_stay_days' => rand(1, 30),
-                    'amenities' => $faker->randomElements(['wifi', 'breakfast', 'desk'], rand(1, 3)),
-                ]),
+
             ];
 
             $listing = Listing::create($data);
+
+            $listing->amenities()->attach(
+                $faker->randomElements($amenityIds, rand(1, min(3, count($amenityIds))))
+            );
 
             // Add 1-5 random photos
             $numPhotos = rand(1, 5);
@@ -143,11 +150,13 @@ class ListingSeeder extends Seeder
                 'address' => $faker->streetAddress,
                 'latitude' => $faker->latitude,
                 'longitude' => $faker->longitude,
-                'attributes' => json_encode(['features' => $faker->randomElements(['green_spaces', 'security', 'parking'], rand(1, 3))]),
             ];
 
             $project = Listing::create($data);
             $projects[] = $project;
+            $project->amenities()->attach(
+                $faker->randomElements($amenityIds, rand(1, min(3, count($amenityIds))))
+            );
 
             // Add 1-5 random photos to the project
             $numPhotos = rand(1, 5);
@@ -181,7 +190,6 @@ class ListingSeeder extends Seeder
                     'address' => $project->address . ' - Sub ' . ($k + 1),
                     'latitude' => $project->latitude + $faker->randomFloat(2, -0.01, 0.01),
                     'longitude' => $project->longitude + $faker->randomFloat(2, -0.01, 0.01),
-                    'attributes' => json_encode(['features' => $faker->randomElements(['pool', 'gym'], rand(1, 2))]),
                 ];
 
                 if (in_array($subPropertyTypeName, ['urban_land_project', 'agricultural_land_project'])) {
@@ -195,6 +203,10 @@ class ListingSeeder extends Seeder
                 }
 
                 $subproject = Listing::create($subData);
+                $subproject->amenities()->attach(
+                    $faker->randomElements($amenityIds, rand(1, min(3, count($amenityIds))))
+                );
+
 
                 // Add 1-5 random photos to the subproject
                 $numPhotos = rand(1, 5);

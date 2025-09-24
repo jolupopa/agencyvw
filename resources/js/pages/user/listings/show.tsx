@@ -45,7 +45,7 @@ interface Props extends PageProps {
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Listado de Anuncios',
-        href: route('listings.index'),
+        href: route('user.listings.index'),
     },
 ];
 
@@ -181,7 +181,7 @@ export default function Show() {
                                 <ul className="list-disc pl-5">
                                     {listing.subprojects.map((subproject) => (
                                         <li key={subproject.id}>
-                                            <Link href={`/listings/${subproject.id}`} className="text-blue-500">
+                                            <Link href={`/user/listings/${subproject.id}`} className="text-blue-500">
                                                 {subproject.title} ({subproject.property_type ? displayLabels[subproject.property_type.name] || subproject.property_type.name : 'No especificado'})
                                             </Link>
                                         </li>
@@ -195,7 +195,7 @@ export default function Show() {
                             <div className="mb-6">
                                 <h2 className="text-xl font-semibold mb-2">Proyecto Padre</h2>
                                 <p>
-                                    <Link href={`/listings/${listing.parent.id}`} className="text-blue-500">
+                                    <Link href={`/user/listings/${listing.parent.id}`} className="text-blue-500">
                                         {listing.parent.title}
                                     </Link>
                                 </p>
@@ -212,8 +212,8 @@ export default function Show() {
 
                         {/* Actions */}
                         <div className="flex space-x-4">
-                            <Link href={route('listings.edit', listing.id)} className="bg-green-500 text-white px-4 py-2 rounded">Editar</Link>
-                            <Link href={route('listings.index')} className="bg-gray-500 text-white px-4 py-2 rounded">Volver</Link>
+                            <Link href={route('user.listings.edit', listing.id)} className="bg-green-500 text-white px-4 py-2 rounded">Editar</Link>
+                            <Link href={route('user.listings.index')} className="bg-gray-500 text-white px-4 py-2 rounded">Volver</Link>
                         </div>
                     </div>
                 </div>

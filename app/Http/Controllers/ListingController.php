@@ -52,7 +52,7 @@ class ListingController extends Controller
      */
     public function create(Request $request): Response
     {
-        return Inertia::render('user/listings/create-update', [
+        return Inertia::render('user/listings/create', [
             'offerTypes' => OfferType::all(['id', 'name']),
             'propertyTypes' => PropertyType::all(['id', 'name', 'category']),
             'projects' => Listing::whereHas('offerType', fn($q) => $q->where('name', 'project'))->get(['id', 'title']),
@@ -83,7 +83,8 @@ class ListingController extends Controller
         'bathrooms' => 'nullable|integer|min:0',
         'floors' => 'nullable|integer|min:0',
         'parking_spaces' => 'nullable|integer|min:0',
-        'attributes' => 'nullable|json',
+        'amenities' => 'nullable|array',
+        'amenities.*' => 'integer|exists:amenities,id',
         'parent_id' => 'nullable|exists:listings,id',
         'user_id' => 'required|integer|exists:users,id',
         'subprojects' => 'nullable|array',
@@ -97,7 +98,8 @@ class ListingController extends Controller
         'subprojects.*.bathrooms' => 'nullable|integer|min:0',
         'subprojects.*.floors' => 'nullable|integer|min:0',
         'subprojects.*.parking_spaces' => 'nullable|integer|min:0',
-        'subprojects.*.attributes' => 'nullable|json',
+        'subprojects.*.amenities' => 'nullable|array',
+        'subprojects.*.amenities.*' => 'integer|exists:amenities,id',
         'subprojects.*.user_id' => 'required|integer|exists:users,id',
     ]);
 
@@ -148,7 +150,7 @@ class ListingController extends Controller
                 }
             }
 
-            return redirect()->route('listings.index');
+            return redirect()->route('user.listings.index');
         });
 
     }
@@ -186,7 +188,7 @@ class ListingController extends Controller
             'propertyType' => fn($q) => $q->select(['id', 'name', 'category']),
             'media' => fn($q) => $q->where('type', 'image')
         ]);
-        return Inertia::render('user/listings/create-update', [
+        return Inertia::render('user/listings/edit', [
             'listing' => $listing,
             'offerTypes' => OfferType::all(['id', 'name']),
             'propertyTypes' => PropertyType::all(['id', 'name', 'category']),
@@ -219,7 +221,8 @@ class ListingController extends Controller
             'bathrooms' => 'nullable|integer|min:0',
             'floors' => 'nullable|integer|min:0',
             'parking_spaces' => 'nullable|integer|min:0',
-            'attributes' => 'nullable|json',
+            'amenities' => 'nullable|array',
+            'amenities.*' => 'integer|exists:amenities,id',
             'parent_id' => 'nullable|exists:listings,id',
             'user_id' => 'required|integer|exists:users,id', // Validate user_id
         ]);
@@ -242,7 +245,7 @@ class ListingController extends Controller
                 }
             }
 
-            return redirect()->route('listings.index');
+            return redirect()->route('user.listings.index');
         });
     }
 
