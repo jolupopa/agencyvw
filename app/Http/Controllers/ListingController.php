@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use App\Models\Listing;
+use App\Models\Amenity;
 use App\Models\OfferType;
 use App\Models\PropertyType;
 use Illuminate\Http\Request;
@@ -56,6 +57,7 @@ class ListingController extends Controller
             'offerTypes' => OfferType::all(['id', 'name']),
             'propertyTypes' => PropertyType::all(['id', 'name', 'category']),
             'projects' => Listing::whereHas('offerType', fn($q) => $q->where('name', 'project'))->get(['id', 'title']),
+            'amenities' => Amenity::all(['id', 'name']),
             'auth' => Auth::guard('web')->check() ? ['user' => Auth::user('web')->only(['id', 'name'])] : ['user' => null],
         ]);
     }
@@ -115,10 +117,14 @@ class ListingController extends Controller
         $listingData['user_id'] =  Auth::guard('web')->user()->id ; // Force user_id to authenticated user
 
       return DB::transaction(function () use ($request, $validated) {
-            $listingData = $request->except(['subprojects', 'images']);
+            $listingData = $request->except(['subprojects', 'images', 'amenities']);
             $listingData['user_id'] = auth('web')->user()->id;
             $listingData['status'] = 'active';
             $listing = Listing::create($listingData);
+
+            if ($request->has('amenities')) {
+                $listing->amenities()->sync($request->input('amenities'));
+            }
 
             if ($request->has('subprojects')) {
                 $subprojects = json_decode($request->input('subprojects'), true);
@@ -169,6 +175,7 @@ class ListingController extends Controller
         'media' => fn($query) => $query->orderBy('order'),
         'subprojects' => fn($query) => $query->with(['offerType', 'propertyType']),
         'parent' => fn($query) => $query->with(['offerType', 'propertyType']),
+        'amenities'
         ]);
 
         return Inertia::render('user/listings/show', [
@@ -186,13 +193,15 @@ class ListingController extends Controller
         $listing->load([
             'offerType' => fn($q) => $q->select(['id', 'name']),
             'propertyType' => fn($q) => $q->select(['id', 'name', 'category']),
-            'media' => fn($q) => $q->where('type', 'image')
+            'media' => fn($q) => $q->where('type', 'image'),
+            'amenities'
         ]);
         return Inertia::render('user/listings/edit', [
             'listing' => $listing,
             'offerTypes' => OfferType::all(['id', 'name']),
             'propertyTypes' => PropertyType::all(['id', 'name', 'category']),
             'projects' => Listing::whereHas('offerType', fn($q) => $q->where('name', 'project'))->get(['id', 'title']),
+            'amenities' => Amenity::all(['id', 'name']),
             'auth' => Auth::check('web') ? ['user' => Auth::guard('web')->user()->only(['id', 'name'])] : ['user' => null],
         ]);
     }
@@ -228,9 +237,15 @@ class ListingController extends Controller
         ]);
 
          return DB::transaction(function () use ($request, $listing, $validated) {
-            $listingData = $request->except('images');
+            $listingData = $request->except(['images', 'amenities']);
             $listingData['user_id'] = auth()->id();
             $listing->update($listingData);
+
+            if ($request->has('amenities')) {
+                $listing->amenities()->sync($request->input('amenities'));
+            } else {
+                $listing->amenities()->detach();
+            }
 
             if ($request->hasFile('images')) {
                 // Optionally delete existing media if replacing

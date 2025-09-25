@@ -152,7 +152,11 @@ export default function Form({ isEditing, listing, offerTypes, propertyTypes, pr
         if (formData.bathrooms !== null) form.append('bathrooms', formData.bathrooms.toString());
         if (formData.floors !== null) form.append('floors', formData.floors.toString());
         if (formData.parking_spaces !== null) form.append('parking_spaces', formData.parking_spaces.toString());
-        if (selectedAmenities.length > 0) form.append('amenity_ids', JSON.stringify(selectedAmenities));
+        if (selectedAmenities.length > 0) {
+    selectedAmenities.forEach(id => {
+        form.append('amenities[]', id.toString());
+    });
+}
         if (formData.parent_id !== null) form.append('parent_id', formData.parent_id.toString());
         if (formData.user_id) form.append('user_id', formData.user_id.toString());
 
@@ -398,7 +402,7 @@ export default function Form({ isEditing, listing, offerTypes, propertyTypes, pr
                 <div className="mt-4">
                     <h2 className="text-xl font-semibold mb-2">Amenidades</h2>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {amenities.map((amenity) => (
+                        {(amenities || []).map((amenity) => (
                             <div key={amenity.id} className="flex items-center space-x-2">
                                 <Checkbox
                                     id={`amenity-${amenity.id}`}

@@ -12,6 +12,11 @@ interface Media {
     order: number;
 }
 
+interface Amenity {
+    id: number;
+    name: string;
+}
+
 interface Listing {
     id: number;
     title: string;
@@ -35,6 +40,7 @@ interface Listing {
     parent?: { id: number; title: string; offer_type: { name: string }; property_type: { name: string } };
     subprojects: Listing[];
     media: Media[];
+    amenities: Amenity[];
 }
 
 interface Props extends PageProps {
@@ -140,6 +146,18 @@ export default function Show() {
                                 <div className="h-64 bg-gray-200 rounded flex items-center justify-center">
                                     <p>Mapa (Integrar Leaflet con {listing.latitude}, {listing.longitude})</p>
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Amenities */}
+                        {listing.amenities && listing.amenities.length > 0 && (
+                            <div className="mb-6">
+                                <h2 className="text-xl font-semibold mb-2">Amenidades</h2>
+                                <ul className="list-disc pl-5 grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    {listing.amenities.map((amenity) => (
+                                        <li key={amenity.id}>{amenity.name}</li>
+                                    ))}
+                                </ul>
                             </div>
                         )}
 
