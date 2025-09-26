@@ -34,14 +34,14 @@ class Listing extends Model
         'bathrooms',
         'floors',
         'parking_spaces',
-        'attributes',
+        'amenities',
         'status',
 
 
     ];
 
     protected $casts = [
-        'attributes' => 'array',
+        'amenities' => 'array',
     ];
 
     // Relationships (same).

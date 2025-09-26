@@ -4,7 +4,6 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { usePage, Link } from '@inertiajs/react';
 import { PageProps } from '@inertiajs/core';
-import MapPicker from '@/components/map-picker';
 
 interface Media {
     id: number;
@@ -90,9 +89,6 @@ export default function Show() {
     const isProject = listing.offer_type?.name === 'project';
     const isTemporary = listing.offer_type?.name === 'temporary_accommodation';
 
-     const lat = listing.latitude ?? -8.1091;
-    const lng = listing.longitude ?? -79.0238;
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Detail Listing" />
@@ -104,7 +100,7 @@ export default function Show() {
                         {/* Media Section */}
                         {listing.media.length > 0 && (
                             <div className="mb-6">
-                                <h2 className="text-xl font-semibold mb-2">Imagenes del Inmpueble</h2>
+                                <h2 className="text-xl font-semibold mb-2">Media</h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {listing.media.map((media) => (
                                         <div key={media.id} className="relative">
@@ -141,16 +137,17 @@ export default function Show() {
                         </div>
 
                         {/* Location */}
-                         <div className="mt-6 mb-8 w-full mx-auto ">
-                            <h2 className="text-2xl font-semibold mb-3">Ubicación</h2>
-                            <MapPicker
-                                initialLatitude={lat}
-                                initialLongitude={lng}
-                                // La función de cambio es vacía, ya que solo es lectura
-                                onPositionChange={() => {}}
-                                isClickable={false} // Deshabilitar interacción
-                            />
-                        </div>
+                        {(listing.latitude || listing.longitude) && (
+                            <div className="mb-6">
+                                <h2 className="text-xl font-semibold mb-2">Ubicación</h2>
+                                <p><strong>Latitud:</strong> {listing.latitude ?? 'No especificada'}</p>
+                                <p><strong>Longitud:</strong> {listing.longitude ?? 'No especificada'}</p>
+                                {/* Placeholder for map */}
+                                <div className="h-64 bg-gray-200 rounded flex items-center justify-center">
+                                    <p>Mapa (Integrar Leaflet con {listing.latitude}, {listing.longitude})</p>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Amenities */}
                         {listing.amenities && listing.amenities.length > 0 && (

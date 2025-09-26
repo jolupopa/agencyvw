@@ -2,6 +2,7 @@ import { type Listing, type Option, type Amenity, type Subproject, type User } f
 import React, { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import MapPicker from '@/components/map-picker';
 
 export interface FormProps {
     isEditing: boolean;
@@ -88,6 +89,14 @@ export default function Form({ isEditing, listing, offerTypes, propertyTypes, pr
         setFormData((prev) => ({
             ...prev,
             [name]: value === '' ? null : (e.target.type === 'number' ? parseFloat(value) : value),
+        }));
+    };
+
+    const handlePositionChange = (lat: number, lng: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            latitude: lat, // Actualiza la latitud
+            longitude: lng, // Actualiza la longitud
         }));
     };
 
@@ -294,6 +303,7 @@ export default function Form({ isEditing, listing, offerTypes, propertyTypes, pr
                         value={formData.latitude ?? ''}
                         onChange={handleChange}
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                        disabled={true}
                     />
                 </div>
                 <div>
@@ -305,8 +315,20 @@ export default function Form({ isEditing, listing, offerTypes, propertyTypes, pr
                         value={formData.longitude ?? ''}
                         onChange={handleChange}
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                        disabled={true}
                     />
                 </div>
+                {/* === NUEVA SECCIÓN DEL MAPA === */}
+                <div className="w-full ">
+                    <h2 className="text-lg font-semibold mb-2 text-gray-700">Ubicación en el Mapa (Arrastra el Pin)</h2>
+                    <MapPicker
+                        initialLatitude={formData.latitude}
+                        initialLongitude={formData.longitude}
+                        onPositionChange={handlePositionChange}
+                        isClickable={true} // Permitir clics para reubicar el pin
+                    />
+                </div>
+                {/* ============================== */}
                 {isTerrain && (
                     <div>
                         <label htmlFor="land_area" className="block text-sm font-medium text-gray-700">Área del Terreno (m²)</label>

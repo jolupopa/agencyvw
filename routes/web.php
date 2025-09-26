@@ -28,8 +28,8 @@ Route::middleware(['auth:web', 'verified'])->group(function () {
     Route::put('/user/listings/{id}', [ListingController::class, 'update'])->name('user.listings.update');
     Route::delete('/user/listings/{id}', [ListingController::class, 'destroy'])->name('user.listings.destroy');
 
-    Route::post('/listings/{id}/media', [ListingController::class, 'storeMedia'])->name('listings.media.store');
-    Route::delete('/listings/{listing}/media/{media}', [ListingController::class, 'destroyMedia'])->name('listings.media.destroy');
+    //Route::post('/listings/{id}/media', [ListingController::class, 'storeMedia'])->name('listings.media.store');
+    //Route::delete('/listings/{listing}/media/{media}', [ListingController::class, 'destroyMedia'])->name('listings.media.destroy');
 
 });
 

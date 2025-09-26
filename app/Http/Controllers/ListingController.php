@@ -105,14 +105,6 @@ class ListingController extends Controller
         'subprojects.*.user_id' => 'required|integer|exists:users,id',
     ]);
 
-    $user1 = $request['user_id'];
-    $user2 =  Auth::guard('web')->user()->id;
-        // // Ensure user_id matches the authenticated user
-        // if ($request['user_id'] !==  Auth::guard('web')->user()->id ) {
-        //     dd( $user1 . 'error de usuario no autorizado' . $user2);
-        //     //return response()->json(['error' => 'Unauthorized user_id'], 403);
-        // }
-
         $listingData = $request->except('subprojects');
         $listingData['user_id'] =  Auth::guard('web')->user()->id ; // Force user_id to authenticated user
 
