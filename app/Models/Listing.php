@@ -29,7 +29,7 @@ class Listing extends Model
         'latitude',
         'longitude',
         'land_area',
-        'built-area',
+        'built_area',
         'bedrooms',
         'bathrooms',
         'floors',

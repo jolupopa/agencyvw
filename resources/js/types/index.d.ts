@@ -66,7 +66,7 @@ export interface Listing {
     bathrooms: number | null;
     floors: number | null;
     parking_spaces: number | null;
-    amenities:  Amenity[];
+    amenities?:  Amenity[];
     parent_id: number | null;
     user_id?: number;
     offer_type?: Option;

@@ -45,6 +45,7 @@ interface Props extends PageProps {
 }
 
 export default function index({ listings, auth }: Props) {
+    console.log('listings: ', listings);
      const displayLabels: { [key: string]: string } = {
         sale: 'Venta',
         rent: 'Alquiler',

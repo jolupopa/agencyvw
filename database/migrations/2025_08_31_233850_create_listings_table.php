@@ -32,7 +32,6 @@ return new class extends Migration
             $table->integer('bathrooms')->nullable();
             $table->integer('floors')->nullable();
             $table->integer('parking_spaces')->nullable();
-            $table->jsonb('attributes')->nullable(); // Extra: {'amenities': ['pool'], 'terrain_type': 'flat' for land, etc.}
             $table->enum('status', ['active', 'inactive', 'end'])->default('active');
             $table->timestamps();
             // Indexes for filtering/scalability.
