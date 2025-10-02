@@ -3,16 +3,17 @@
 namespace App\Http\Controllers;
 
 use Inertia\Inertia;
-use App\Models\Listing;
+use Inertia\Response;
 use App\Models\Amenity;
+use App\Models\Listing;
 use App\Models\OfferType;
 use App\Models\PropertyType;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
-use Inertia\Response;
+use App\Http\Resources\ListingListResource;
 
 class ListingController extends Controller
 {
@@ -40,12 +41,18 @@ class ListingController extends Controller
         $listings = $query->paginate(10)->withQueryString();
 
         //dd($listings);
+        
 
         return Inertia::render('user/listings/index', [
-            'listings' => $listings,
-            'offerTypes' => OfferType::all(['id', 'name']),
-            'propertyTypes' => PropertyType::all(['id', 'name', 'category']),
+            'listings' => ListingListResource::collection($listings)
+
         ]);
+
+        // return Inertia::render('user/listings/index', [
+        //     'listings' => $listings,
+        //     'offerTypes' => OfferType::all(['id', 'name']),
+        //     'propertyTypes' => PropertyType::all(['id', 'name', 'category']),
+        // ]);
     }
 
     /**

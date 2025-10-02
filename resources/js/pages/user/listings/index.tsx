@@ -1,16 +1,9 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
-import { Link } from '@inertiajs/react';
-import { PageProps } from '@inertiajs/core';
+import { Head, Link } from '@inertiajs/react';
+import { type PageProps } from '@inertiajs/core';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Listado de Propiedades',
-        href: route('user.listings.index'),
-    },
-];
+
 
 interface Listing {
     id: number;
@@ -30,10 +23,33 @@ interface Option {
     category?: string;
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 interface Props extends PageProps {
     listings: {
         data: Listing[];
-        links: { url: string | null; label: string; active: boolean }[];
+        // Estos son los enlaces first, last, prev, next (no para iterar)
+        links: {
+            first: string | null;
+            last: string | null;
+            prev: string | null;
+            next: string | null;
+        };
+        // El array de enlaces para la paginación está dentro de 'meta'
+        meta: {
+            current_page: number;
+            from: number | null;
+            last_page: number;
+            links: PaginationLink[]; // <-- LA PROPIEDAD CLAVE
+            path: string;
+            per_page: number;
+            to: number | null;
+            total: number;
+        };
         current_page: number;
         last_page: number;
         per_page: number;
@@ -44,9 +60,20 @@ interface Props extends PageProps {
     auth: { user: { id: number; name: string } | null };
 }
 
-export default function index({ listings, auth }: Props) {
+// --------------------------------------------------------------------------------
+// 2. COMPONENTE
+// --------------------------------------------------------------------------------
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Listado de Propiedades',
+        href: route('user.listings.index'),
+    },
+];
+
+export default function Index({ listings, auth }: Props) {
     console.log('listings: ', listings);
-     const displayLabels: { [key: string]: string } = {
+    const displayLabels: { [key: string]: string } = {
         sale: 'Venta',
         rent: 'Alquiler',
         project: 'Proyecto',
@@ -65,87 +92,98 @@ export default function index({ listings, auth }: Props) {
         urban_land_project: 'Proyecto de Terreno Urbano',
         agricultural_land_project: 'Proyecto de Terreno Agrícola',
     };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Listado de publicaciones" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <div className='flex-col md:flex-row md:flex md:justify-between items-center'>
                     <h1 className="text-2xl font-bold mb-4">
-                    {auth.user ? 'Mis Listados' : 'Todos los Listados'}
+                        {auth.user ? 'Mis Listados' : 'Todos los Listados'}
                     </h1>
                     <Link href={route('user.listings.create')} className="bg-blue-500 text-white px-3 py-2 hover:underline">
-                            Crear un nuevo listado
+                        Crear un nuevo listado
                     </Link>
                 </div>
-                {auth.user && listings.data.length === 0 && (
-                    <p className="text-gray-500 mb-4">
-                        No tienes listados creados.{' '}
 
-                    </p>
-                )}
-
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {listings.data.map((listing) => (
-                    <div key={listing.id} className="bg-white p-4 rounded shadow">
-                        {listing.first_image && (
-                            <img
-                                src={listing.first_image.path}
-                                alt={listing.title}
-                                className="w-full h-48 object-cover rounded mb-4"
-                            />
-                        )}
-                        <h2 className="text-xl font-semibold">{listing.title}</h2>
-                        <p className="text-gray-600">{listing.description?.substring(0, 100) || 'Sin descripción'}...</p>
-                        <p className="text-gray-700">
-                            {listing.price ? `${listing.currency} ${listing.price.toLocaleString()}` : 'Precio no disponible'}
-                        </p>
-                        <p className="text-gray-600">{listing.city || 'Ciudad no especificada'}</p>
-                        <p className="text-gray-600">{displayLabels[listing.offer_type.name] || listing.offer_type.name}</p>
-                        <p className="text-gray-600">{displayLabels[listing.property_type.name] || listing.property_type.name}</p>
-                        <div className="mt-2 flex space-x-2">
-                            <Link
-                                href={route('user.listings.show', listing.id)}
-                                className="text-blue-500 hover:underline"
-                            >
-                                Ver Detalles
-                            </Link>
-                            {auth.user && (
-                                <Link
-                                    href={route('user.listings.edit', listing.id)}
-                                    className="text-green-500 hover:underline"
-                                >
-                                    Editar
-                                </Link>
+                {/* LISTADO DE PROPIEDADES */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {listings.data.map((listing) => (
+                        <div key={listing.id} className="bg-white p-4 rounded shadow">
+                            {/* ... (Tarjeta de listado) ... */}
+                            {listing.first_image && (
+                                <img
+                                    src={listing.first_image.path}
+                                    alt={listing.title}
+                                    className="w-full h-48 object-cover rounded mb-4"
+                                />
                             )}
+                            <h2 className="text-xl font-semibold">{listing.title}</h2>
+                            <p className="text-gray-600">{listing.description?.substring(0, 100) || 'Sin descripción'}...</p>
+                            <p className="text-gray-700">
+                                {listing.price ? `${listing.currency} ${listing.price.toLocaleString()}` : 'Precio no disponible'}
+                            </p>
+                            <p className="text-gray-600">{listing.city || 'Ciudad no especificada'}</p>
+                            <p className="text-gray-600">{displayLabels[listing.offer_type.name] || listing.offer_type.name}</p>
+                            <p className="text-gray-600">{displayLabels[listing.property_type.name] || listing.property_type.name}</p>
+                            <div className="mt-2 flex space-x-2">
+                                <Link
+                                    href={route('user.listings.show', listing.id)}
+                                    className="text-blue-500 hover:underline"
+                                >
+                                    Ver Detalles
+                                </Link>
+                                {auth.user && (
+                                    <Link
+                                        href={route('user.listings.edit', listing.id)}
+                                        className="text-green-500 hover:underline"
+                                    >
+                                        Editar
+                                    </Link>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
-            {listings.data.length > 0 && (
-                <div className="mt-4 flex justify-center">
-                    {listings.links.map((link, index) => (
-                        <Link
-                            key={index}
-                            href={link.url || '#'}
-                            className={`mx-1 px-3 py-1 rounded ${link.active ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                            preserveState
-                        >
-                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Link>
                     ))}
                 </div>
-            )}
-            {auth.user && listings.data.length === 0 && (
-                <div className="mt-4 text-center">
-                    <Link
-                        href={route('user.listings.create')}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    >
-                        Crear Nuevo Listado
-                    </Link>
-                </div>
-            )}
 
+                {/* PAGINACIÓN CORREGIDA */}
+                {listings.data.length > 0 && (
+                    <div className="mt-4 flex justify-center">
+                        {/* Iteramos sobre listings.meta.links */}
+                        {listings.meta.links.map((link, index) => (
+                            <Link
+                                key={index}
+                                href={link.url || '#'}
+                                className={`
+                                    mx-1 px-3 py-1 rounded transition-colors duration-150
+                                    ${link.active ? 'bg-blue-600 text-white font-bold' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
+                                    ${!link.url && 'opacity-50 cursor-not-allowed'}
+                                `}
+                                onClick={(e) => {
+                                    if (!link.url) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                preserveState
+                            >
+                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                            </Link>
+                        ))}
+                    </div>
+                )}
+
+                {/* MENSAJE Y BOTÓN DE CREAR SI NO HAY LISTADOS */}
+                {auth.user && listings.data.length === 0 && (
+                    <div className="mt-4 text-center">
+                        <p className="text-gray-500 mb-4">No tienes listados creados.</p>
+                        <Link
+                            href={route('user.listings.create')}
+                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                            Crear Nuevo Listado
+                        </Link>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );
